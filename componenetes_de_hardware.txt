@@ -1,0 +1,27 @@
+1. Microcontrolador
+Arduino Uno o Arduino Mega 2560: Dependiendo de la cantidad de entradas y salidas que necesites. El Mega tiene más puertos si planeas expandir el proyecto o agregar más funcionalidades.
+2. Cámara
+Cámara OV7670 o OV2640: Cámaras compatibles con Arduino que te permitirán capturar imágenes para la clasificación de residuos. Si necesitas mayor resolución y capacidad de procesamiento de imágenes, podrías considerar una Raspberry Pi con un módulo de cámara Pi.
+3. Sensor de Proximidad/Movimiento
+HC-SR04 (Sensor de ultrasonido): Para detectar cuando alguien se aproxima al basurero, activando el sistema de clasificación.
+PIR Motion Sensor: Para detectar la presencia de objetos o personas cerca del basurero.
+4. Motores
+Servomotores: Para controlar la apertura y cierre de las tapas de los contenedores de basura.
+Motores DC con reductores: Si necesitas más fuerza para mover componentes más pesados.
+5. Controladores de Motor
+L298N o L293D: Módulos para controlar los motores DC o servos desde el Arduino.
+6. Sistema de Alimentación
+Fuente de alimentación de 12V o 9V: Dependiendo de los motores y componentes adicionales que utilices.
+Baterías recargables (LiPo o NiMH): Si quieres que el sistema sea portátil.
+7. Conexión Inalámbrica
+Módulo Bluetooth HC-05/HC-06 o Módulo WiFi ESP8266: Para la comunicación inalámbrica si necesitas controlar el sistema remotamente o enviar datos.
+8. Otros Componentes
+Puentes H: Para controlar la dirección y velocidad de los motores.
+Relés: Para activar o desactivar componentes de alto voltaje.
+Display LCD: Para mostrar información en el basurero, como instrucciones o estado del sistema.
+LEDs y resistencias: Para indicadores visuales.
+9. Chasis o Estructura
+Materiales como MDF, Acrílico, o PVC: Para construir la estructura del basurero automatizado.
+Estos componentes son fundamentales para construir un prototipo funcional. Podrías necesitar adaptar y modificar según las necesidades específicas de tu proyecto, como la integración de más sensores o la optimización del sistema de apertura/cierre de los contenedores.
+
+Si tienes alguna 
