@@ -1,0 +1,182 @@
+from tkinter import *
+from PIL import Image, ImageTk
+import imutils
+import cv2
+import numpy as np
+from ultralytics import YOLO
+import math
+
+
+def clean_lbl():
+    # Clean
+    lblimg.config(image='')
+    lblimgtxt.config(image='')
+
+
+def images(img, imgtxt):
+    # Img Detect
+    img = np.array(img, dtype="uint8")
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    img = Image.fromarray(img)
+
+    img_ = ImageTk.PhotoImage(image=img)
+    lblimg.configure(image=img_)
+    lblimg.image = img_
+
+    # Img Text
+    imgtxt = np.array(imgtxt, dtype="uint8")
+    imgtxt = cv2.cvtColor(imgtxt, cv2.COLOR_BGR2RGB)
+    imgtxt = Image.fromarray(imgtxt)
+
+    img_txt = ImageTk.PhotoImage(image=imgtxt)
+    lblimgtxt.configure(image=img_txt)
+    lblimgtxt.image = img_txt
+
+    # Libera recursos de PIL
+    img.close()
+    imgtxt.close()
+
+
+# Scanning Function
+def Scanning():
+    global img_organico, img_papel, img_plastico, img_no_residuo
+    global img_organicotxt, img_papeltxt, img_plasticotxt, img_no_residuotxt, pantalla
+    global lblimg, lblimgtxt
+
+    # Interfaz
+    lblimg = Label(pantalla)
+    lblimg.place(x=63, y=135)
+
+    lblimgtxt = Label(pantalla)
+    lblimgtxt.place(x=1040, y=477)
+    detect = False
+
+    # Read VideoCapture
+    if cap is not None:
+        ret, frame = cap.read()
+        frame_show = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        # True
+        if ret == True:
+            # Usar YOLO para detectar objetos
+            results = model(frame, stream=True, verbose=False)
+            for res in results:
+                # Obtener las cajas de los objetos detectados
+                boxes = res.boxes
+                for box in boxes:
+                    detect = True
+                    # Coordenadas de la caja delimitadora
+                    x1, y1, x2, y2 = box.xyxy[0]
+                    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+
+                    # Evitar valores negativos en las coordenadas
+                    if x1 < 0: x1 = 0
+                    if y1 < 0: y1 = 0
+                    if x2 < 0: x2 = 0
+                    if y2 < 0: y2 = 0
+
+                    # Obtener la clase detectada y la confianza
+                    cls = int(box.cls[0])
+                    conf = math.ceil(box.conf[0])
+
+                    # Clasificar los residuos según la clase
+                    if cls in [0, 1, 5]:  # Orgánico (Frutas, Verduras, Alimentos)
+                        cv2.rectangle(frame_show, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                        text = f'{clsName[cls]} {int(conf) * 100}%'
+                        cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                        images(img_organico, img_organicotxt)
+
+                    elif cls in [6, 7, 8]:  # Papel (Envoltorios, Barbijos, Papel higiénico)
+                        cv2.rectangle(frame_show, (x1, y1), (x2, y2), (255, 255, 0), 2)
+                        text = f'{clsName[cls]} {int(conf) * 100}%'
+                        cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+                        images(img_papel, img_papeltxt)
+
+                    elif cls in [2, 3, 4]:  # Plástico (Botellas, Vasos)
+                        cv2.rectangle(frame_show, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                        text = f'{clsName[cls]} {int(conf) * 100}%'
+                        cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        images(img_plastico, img_plasticotxt)
+
+            # Si no se detecta ningún objeto en el fotograma
+            if detect == False:
+                # Clean
+                clean_lbl()
+            # Redimensionar el fotograma para ajustarlo a la interfaz
+            frame_show = imutils.resize(frame_show, width=640)
+
+            # Convertir el fotograma para mostrarlo en la GUI
+            im = Image.fromarray(frame_show)
+            img = ImageTk.PhotoImage(image=im)
+
+            # Mostrar el video en la interfaz
+            lblVideo.configure(image=img)
+            lblVideo.image = img
+            lblVideo.after(10, Scanning)
+
+            # Liberar recursos de PIL
+            im.close()
+        else:
+            cap.release()
+            cv2.destroyAllWindows()  # Cerrar todas las ventanas de OpenCV
+
+
+# main
+def ventana_principal():
+    global cap, lblVideo, model, clsName
+    global img_organico, img_papel, img_plastico, img_no_residuo
+    global img_organicotxt, img_papeltxt, img_plasticotxt, img_no_residuotxt, pantalla
+
+    # Ventana principal
+    pantalla = Tk()
+    pantalla.title("RECICLAJE INTELIGENTE")
+    pantalla.geometry("1280x720")
+
+    # Background
+    imagenF = PhotoImage(file="setUp/Canva1.png")
+    background = Label(image=imagenF, text="Inicio")
+    background.place(x=0, y=0, relwidth=1, relheight=1)
+
+    # Clases (Ajustado para que coincidan con 'data.yaml')
+    clsName = [
+        'Frutas',        # Clase 0
+        'Verduras',      # Clase 1
+        'Botellas',      # Clase 2
+        'Envoltorios',   # Clase 3
+        'Vasos',         # Clase 4
+        'Alimentos',     # Clase 5
+        'Barbijos',      # Clase 6
+        'Papel',         # Clase 7
+        'Papel_higienico'# Clase 8
+    ]
+
+    # Model
+    model = YOLO('Modelos/best.pt')
+
+    # Images
+    img_organico = cv2.imread("setUp/organico.png")
+    img_papel = cv2.imread("setUp/papel.png")
+    img_plastico = cv2.imread("setUp/plastico.png")
+    img_no_residuo = cv2.imread("setUp/no_residuo.png")
+
+    img_organicotxt = cv2.imread("setUp/organicotxt.png")
+    img_papeltxt = cv2.imread("setUp/papeltxt.png")
+    img_plasticotxt = cv2.imread("setUp/plasticotxt.png")
+    img_no_residuotxt = cv2.imread("setUp/no_residuotxt.png")
+
+    # Video
+    lblVideo = Label(pantalla)
+    lblVideo.place(x=338,)
+
+    # Elegimos la cámara
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+    cap.set(3, 1280)
+    cap.set(4, 720)
+    Scanning()
+
+    # Ejecutar
+    pantalla.mainloop()
+
+
+if __name__ == "__main__":
+    ventana_principal()

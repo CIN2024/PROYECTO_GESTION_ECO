@@ -1,0 +1,30 @@
+import clasificacion_residuos
+import control_contenedores
+
+def main():
+    # Conexión con Arduino
+    arduino = control_contenedores.inicializar_conexion_arduino()
+
+    if arduino is None:
+        print("Error al conectar con Arduino.")
+        return
+
+    # Inicialización de la clasificación de residuos, pasando el objeto arduino
+    clasificacion_residuos.arduino = arduino  # Pasar la conexión de Arduino al módulo de clasificación
+
+    try:
+        # Ejecuta la interfaz gráfica de detección de residuos
+        print("Iniciando detección de residuos...")
+        clasificacion_residuos.ventana_principal()  # Esto bloquea hasta que se cierre la ventana
+
+    except Exception as e:
+        print(f"Error en el sistema: {e}")
+    finally:
+        # Cerrar la conexión con Arduino antes de salir
+        control_contenedores.cerrar_conexion_arduino()
+
+        print("Cerrando el sistema.")
+
+if __name__ == "__main__":
+    main()
+

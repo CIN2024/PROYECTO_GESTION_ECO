@@ -1,0 +1,43 @@
+# Clases (Ajustado para que coincidan con 'data.yaml')
+clsName = [
+    'Frutas',        # Clase 0
+    'Verduras',      # Clase 1
+    'Botellas',      # Clase 10
+    'Envoltorios',   # Clase 11
+    'Vasos',         # Clase 12
+    'Alimentos 	C	lase 2
+    'Barbijos  Clase 3
+    'Barbijos',      # Clase 6
+    'Papel_higienico' # Clase 8
+]
+
+
+
+MODIFICADO
+
+
+  clsName = [
+        'Frutas',        # Clase 0
+        'Verduras',      # Clase 1
+        'Botellas',      # Clase 2
+        'Envoltorios',   # Clase 3
+        'Vasos',         # Clase 4
+        'Alimentos',     # Clase 5
+        'Barbijos',      # Clase 6
+        'Papel',         # Clase 7
+        'Papel_higienico'# Clase 8
+    ]
+
+
+ahora quiero que solo se llamen como organico ,papel y plastic
+  clsName = [
+        'ORGANICO',        # Clase 0
+        'ORGANICO',      # Clase 1
+        'PLASTICO',      # Clase 2
+        'PLASTICO',   # Clase 3
+        'PLASTICO',         # Clase 4
+        'ORGANICO',     # Clase 5
+        'PAPEL',      # Clase 6
+        'PAPEL',         # Clase 7
+        'PAPEL'# Clase 8
+    ]
