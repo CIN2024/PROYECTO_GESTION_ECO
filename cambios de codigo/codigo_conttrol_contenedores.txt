@@ -1,0 +1,137 @@
+import serial
+import time
+
+# Variable global para el manejo de la conexión única con Arduino
+arduino = None
+
+
+def inicializar_conexion_arduino():
+    global arduino
+    if arduino is None:
+        try:
+            arduino = serial.Serial('COM3', 9600)  # Cambia 'COM3' por el puerto correcto si es necesario
+            time.sleep(2)  # Espera a que se establezca la conexión
+            print("Conexión con Arduino exitosa.")
+            return arduino
+        except Exception as e:
+            print(f"Error al conectar con Arduino: {e}")  # Imprimir detalles del error
+            return None
+    else:
+        print("Arduino ya está conectado.")
+        return arduino  # Devuelve la conexión existente
+
+
+def enviar_comando_a_arduino(cls):
+    global arduino  # Asegurarse de usar la variable global
+    if arduino is not None:
+        try:
+            # Clasificación según las clases proporcionadas
+            if cls in [0, 1, 5]:  # Orgánico
+                print("Enviando señal de residuo orgánico.")
+                arduino.write(b'O')  # Comando para el servo de Orgánico
+                arduino.flush()
+            elif cls in [6, 7, 8]:  # Papel
+                print("Enviando señal de residuo papel.")
+                arduino.write(b'P')  # Comando para el servo de Papel
+                arduino.flush()
+            elif cls in [2, 3, 4]:  # Plástico
+                print("Enviando señal de residuo plástico.")
+                arduino.write(b'L')  # Comando para el servo de Plástico
+                arduino.flush()
+            else:
+                print(f"Clase de residuo desconocida: {cls}")
+
+            time.sleep(1)  # Espera de 1 segundo antes de enviar un nuevo comando
+        except Exception as e:
+            print(f"Error enviando comando a Arduino: {e}")
+    else:
+        print("No hay conexión con Arduino. Inicializa la conexión primero.")
+
+
+def cerrar_conexion_arduino():
+    global arduino  # Usamos la variable global arduino
+    if arduino is not None:
+        try:
+            arduino.close()
+            print("Conexión con Arduino cerrada.")
+            arduino = None
+        except Exception as e:
+            print(f"Error al cerrar la conexión con Arduino: {e}")
+
+# Ejemplo de uso:
+# arduino = inicializar_conexion_arduino()
+# enviar_comando_a_arduino(0)  # Orgánico
+# enviar_comando_a_arduino(6)  # Papel
+# enviar_comando_a_arduino(3)  # Plástico
+# cerrar_conexion_arduino()
+
+
+VERSION N2 AGREGANDO MAS TIEMPO PARA LA DETECCION
+import serial
+import time
+
+# Variable global para el manejo de la conexión única con Arduino
+arduino = None
+ultimo_residuo = None  # Variable para almacenar el último residuo detectado
+
+def inicializar_conexion_arduino():
+    global arduino
+    if arduino is None:
+        try:
+            arduino = serial.Serial('COM3', 9600)  # Cambia 'COM3' por el puerto correcto si es necesario
+            time.sleep(2)  # Espera a que se establezca la conexión
+            print("Conexión con Arduino exitosa.")
+            return arduino
+        except Exception as e:
+            print(f"Error al conectar con Arduino: {e}")  # Imprimir detalles del error
+            return None
+    else:
+        print("Arduino ya está conectado.")
+        return arduino  # Devuelve la conexión existente
+
+def enviar_comando_a_arduino(cls):
+    global arduino, ultimo_residuo  # Asegurarse de usar las variables globales
+    if arduino is not None:
+        try:
+            # Solo enviamos el comando si el residuo ha cambiado
+            if cls != ultimo_residuo:
+                if cls in [0, 1, 5]:  # Orgánico
+                    print(f"Comando enviado para orgánico {cls}")
+                    arduino.write(b'O')  # Comando para el servo de Orgánico
+                    arduino.flush()
+                elif cls in [6, 7, 8]:  # Papel
+                    print(f"Comando enviado para papel {cls}")
+                    arduino.write(b'P')  # Comando para el servo de Papel
+                    arduino.flush()
+                elif cls in [2, 3, 4]:  # Plástico
+                    print(f"Comando enviado para plástico {cls}")
+                    arduino.write(b'L')  # Comando para el servo de Plástico
+                    arduino.flush()
+                else:
+                    print(f"Clase de residuo desconocida: {cls}")
+                # Actualizamos el último residuo detectado
+                ultimo_residuo = cls
+                time.sleep(1)  # Espera de 1 segundo antes de enviar un nuevo comando
+            else:
+                print(f"El residuo {cls} ya ha sido procesado. No se enviará nuevamente.")
+        except Exception as e:
+            print(f"Error enviando comando a Arduino: {e}")
+    else:
+        print("No hay conexión con Arduino. Inicializa la conexión primero.")
+
+def cerrar_conexion_arduino():
+    global arduino  # Usamos la variable global arduino
+    if arduino is not None:
+        try:
+            arduino.close()
+            print("Conexión con Arduino cerrada.")
+            arduino = None
+        except Exception as e:
+            print(f"Error al cerrar la conexión con Arduino: {e}")
+
+# Ejemplo de uso:
+# arduino = inicializar_conexion_arduino()
+# enviar_comando_a_arduino(0)  # Orgánico
+# enviar_comando_a_arduino(6)  # Papel
+# enviar_comando_a_arduino(3)  # Plástico
+# cerrar_conexion_arduino()

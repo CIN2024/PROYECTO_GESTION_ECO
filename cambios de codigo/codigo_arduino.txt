@@ -1,0 +1,89 @@
+#include <Servo.h>
+
+Servo servoOrganico;
+Servo servoPapel;
+Servo servoPlastico;
+
+void setup() {
+  Serial.begin(9600);
+
+  // Definir pines para los servos
+  servoOrganico.attach(9);
+  servoPapel.attach(10);
+  servoPlastico.attach(11);
+
+  // Inicializar servos cerrados
+  servoOrganico.write(0);
+  servoPapel.write(0);
+  servoPlastico.write(0);
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    char comando = Serial.read();
+
+    // Dependiendo del comando recibido, mueve el servo correspondiente
+    if (comando == 'O') {
+      moverServo(servoOrganico);
+    } else if (comando == 'P') {
+      moverServo(servoPapel);
+    } else  {
+      moverServo(servoPlastico);
+    }
+  }
+}
+
+// Cambia la función para pasar el objeto Servo por referencia
+void moverServo(Servo &servo) {
+  servo.write(90);  // Abre el contenedor
+  delay(5000);      // Mantiene abierto por 3 segundos
+  servo.write(0);   // Cierra el contenedor
+}
+
+
+
+
+VERSIO N2 DE ARDUINO
+#include <Servo.h>
+
+Servo servoOrganico;
+Servo servoPapel;
+Servo servoPlastico;
+
+void setup() {
+  Serial.begin(9600);
+
+  // Definir pines para los servos
+  servoOrganico.attach(9);
+  servoPapel.attach(10);
+  servoPlastico.attach(11);
+
+  // Inicializar servos cerrados
+  servoOrganico.write(0);
+  servoPapel.write(0);
+  servoPlastico.write(0);
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    char comando = Serial.read();
+    Serial.flush();  // Vacía el buffer serial
+
+    // Dependiendo del comando recibido, mueve el servo correspondiente
+    if (comando == 'O') {
+      moverServo(servoOrganico);
+    } else if (comando == 'P') {
+      moverServo(servoPapel);
+    } else {
+      moverServo(servoPlastico);
+    }
+  }
+}
+
+// Cambia la función para pasar el objeto Servo por referencia
+void moverServo(Servo &servo) {
+  servo.write(90);  // Abre el contenedor
+  delay(5000);      // Mantiene abierto por 1 segundo (puedes ajustar este valor si lo prefieres)
+  servo.write(0);   // Cierra el contenedor
+}
+
