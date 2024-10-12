@@ -1,3 +1,4 @@
+VERSION NUMERO 7 
 from tkinter import *
 from PIL import Image, ImageTk
 import imutils
