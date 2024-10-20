@@ -1,3 +1,4 @@
+VERSION NUMERO 7 
 from tkinter import *
 from PIL import Image, ImageTk
 import imutils
@@ -10,13 +11,14 @@ import time
 
 # Definición de variables globales
 arduino = None  # Esto se inicializa en ventana_principal
-
+detection_count = 0  # Para contar validaciones consecutivas
+detection_threshold = 5  # Número de validaciones consecutivas necesarias para confirmar detección
+last_detection_time = time.time()  # Inicializar variable de tiempo para detecciones
 
 def clean_lbl():
     # Limpiar etiquetas de imagen
     lblimg.config(image='')
     lblimgtxt.config(image='')
-
 
 def images(img, imgtxt):
     # Mostrar imágenes en la GUI
@@ -38,13 +40,11 @@ def images(img, imgtxt):
     img.close()
     imgtxt.close()
 
-
 # Scanning Function
 def Scanning():
     global img_organico, img_papel, img_plastico, img_no_residuo
     global img_organicotxt, img_papeltxt, img_plasticotxt, img_no_residuotxt, pantalla
-    global lblimg, lblimgtxt, detect
-    global last_detection_time
+    global lblimg, lblimgtxt, detect, detection_count, last_detection_time
 
     # Interfaz
     lblimg = Label(pantalla)
@@ -77,41 +77,52 @@ def Scanning():
                     cls = int(box.cls[0])
 
                     # Confianza
-                    conf = math.ceil(box.conf[0])
+                    conf = box.conf[0]
 
                     current_time = time.time()
                     if current_time - last_detection_time > 3:  # Pausa de 3 segundos entre detecciones
                         detect = False
 
                     if not detect:
-                        # Esperar un segundo para confirmar la detección
-                        time.sleep(1)
-
-                        # Clasificar y enviar señales al Arduino según la clase del residuo
-                        if cls in [0, 1, 5]:  # Orgánico
-                            cv2.rectangle(frame_show, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                            text = f'{clsName[cls]} {int(conf) * 100}%'
-                            cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                            images(img_organico, img_organicotxt)
-                            control_contenedores.enviar_comando_a_arduino(cls)
-                            print(f"Comando enviado para orgánico {cls}")
-                        elif cls in [6, 7, 8]:  # Papel
-                            cv2.rectangle(frame_show, (x1, y1), (x2, y2), (255, 255, 0), 2)
-                            text = f'{clsName[cls]} {int(conf) * 100}%'
-                            cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
-                            images(img_papel, img_papeltxt)
-                            control_contenedores.enviar_comando_a_arduino(cls)
-                            print(f"Comando enviado para papel {cls}")
-                        elif cls in [2, 3, 4]:  # Plástico
-                            cv2.rectangle(frame_show, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                            text = f'{clsName[cls]} {int(conf) * 100}%'
-                            cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                            images(img_plastico, img_plasticotxt)
-                            control_contenedores.enviar_comando_a_arduino(cls)
-                            print(f"Comando enviado para plástico {cls}")
+                        # Clasificar y realizar validaciones
+                        if conf >= 0.50:  # Confianza umbral del 50%
+                            if detection_count >= detection_threshold:  # Verificar si alcanza el umbral
+                                if cls in [0, 1, 5]:  # Orgánico
+                                    cv2.rectangle(frame_show, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                                    text = f'{clsName[cls]} {int(conf * 100)}%'
+                                    cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                                    images(img_organico, img_organicotxt)
+                                    control_contenedores.enviar_comando_a_arduino(cls)
+                                    print(f"Comando enviado para orgánico {cls}")
+                                elif cls in [6, 7, 8]:  # Papel
+                                    cv2.rectangle(frame_show, (x1, y1), (x2, y2), (255, 255, 0), 2)
+                                    text = f'{clsName[cls]} {int(conf * 100)}%'
+                                    cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+                                    images(img_papel, img_papeltxt)
+                                    control_contenedores.enviar_comando_a_arduino(cls)
+                                    print(f"Comando enviado para papel {cls}")
+                                elif cls in [2, 3, 4]:  # Plástico
+                                    cv2.rectangle(frame_show, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                                    text = f'{clsName[cls]} {int(conf * 100)}%'
+                                    cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                                    images(img_plastico, img_plasticotxt)
+                                    control_contenedores.enviar_comando_a_arduino(cls)
+                                    print(f"Comando enviado para plástico {cls}")
+                            else:
+                                detection_count += 1  # Incrementar el contador de validaciones consecutivas
+                                print(f"Validación en progreso: {detection_count}/{detection_threshold}")
+                        else:  # No residuos
+                            cv2.rectangle(frame_show, (x1, y1), (x2, y2), (0, 0, 0), 2)  # Rectángulo negro
+                            text = 'NO RESIDUO'
+                            cv2.putText(frame_show, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+                            images(img_no_residuo, img_no_residuotxt)
+                            print("Objeto no reconocido como residuo.")
+                            detection_count = 0  # Reiniciar el contador si no es un residuo
 
                         detect = True
                         last_detection_time = time.time()  # Actualizar el tiempo de la última detección
+                    else:
+                        detection_count = 0  # Reiniciar el contador si no hubo detección válida
 
             # Redimensionar el frame
             frame_show = imutils.resize(frame_show, width=640)
@@ -123,14 +134,13 @@ def Scanning():
             lblVideo.image = img
 
             # Aumentar el tiempo de refresco para mejorar el rendimiento de la interfaz
-            lblVideo.after(50, Scanning)  # Cambiar de 10 ms a 50 ms
+            lblVideo.after(50, Scanning)
 
             # Liberar recursos PIL
             im.close()
         else:
             cap.release()
             cv2.destroyAllWindows()  # Cerrar todas las ventanas de OpenCV
-
 
 # Función para manejar el cierre de la ventana
 def on_closing():
@@ -139,7 +149,6 @@ def on_closing():
         cap.release()  # Liberar la cámara
     pantalla.destroy()  # Cerrar la ventana de la interfaz
     print("Interfaz cerrada. Deteniendo el sistema.")
-
 
 # Main
 def ventana_principal():
@@ -173,7 +182,7 @@ def ventana_principal():
         'ORGANICO',  # Clase 5
         'PAPEL',  # Clase 6
         'PAPEL',  # Clase 7
-        'PAPEL'  # Clase 8
+        'PAPEL'   # Clase 8
     ]
 
     # Modelo de YOLO
@@ -206,6 +215,6 @@ def ventana_principal():
     # Mantener la ventana abierta
     pantalla.mainloop()
 
-
 if __name__ == "__main__":
     ventana_principal()
+
